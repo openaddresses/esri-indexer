@@ -73,7 +73,18 @@ def show_service(server_id, service_id):
 
 @app.route('/search', methods=['GET'])
 def search():
-    results = Layer.query.filter_by(name=request.args.get('q')).paginate(int(request.args.get('page', 1)))
+    results = Layer.query \
+        .filter(Layer.name.ilike('%{}%'.format(request.args.get('q'))))
+
+    which_server = request.args.get('server_id')
+    if which_server and which_server.isdigit():
+        results = results.join(Service).filter(Service.server_id == int(which_server))
+
+    page = request.args.get('page', 1)
+    if not isinstance(page, int) and not page.isdigit():
+        page = 1
+
+    results = results.paginate(page=page)
 
     return render_template('show_search.html', results=results)
 
