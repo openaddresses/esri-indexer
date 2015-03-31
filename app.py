@@ -1,18 +1,72 @@
 import os
+from sqlalchemy.exc import IntegrityError
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, render_template, request
 
+import redis
+from rq import Queue
+import requests
+
 from urlparse import urlparse
-from indexer import get_services, get_service_details
+from indexer import Indexer
 
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('HEROKU_POSTGRESQL_VIOLET_URL')
+app.config['REDIS_URL'] = os.environ.get('REDISTOGO_URL', 'redis://localhost:6379')
 db = SQLAlchemy(app)
+redis_conn = redis.from_url(app.config['REDIS_URL'])
+q = Queue(connection=redis_conn)
 
 from models import *
 
+
+def index_esri_server(server_id):
+    app.logger.info('Indexing ESRI server %s', server_id)
+    server = EsriServer.query.get(server_id)
+
+    if not server:
+        app.logger.error('ESRI server %s was not found', server_id)
+        return
+
+    server.status = 'importing'
+    db.session.add(server)
+    db.session.commit()
+
+    resulting_status = 'errored'
+    try:
+        indexer = Indexer(app.logger)
+        services = indexer.get_services(server.url)
+        for service in services:
+            service_details = indexer.get_service_details(service.get('url'))
+
+            db_service = Service(
+                server=server,
+                name=service.get('name'),
+                service_type=service.get('type'),
+                service_data=service_details,
+            )
+            db.session.add(db_service)
+
+            layers = service_details.get('layers', [])
+            for layer in layers:
+                db_layer = Layer(
+                    service=db_service,
+                    name=layer.get('name'),
+                    layer_data=layer,
+                )
+                db.session.add(db_layer)
+        resulting_status = 'imported'
+    except requests.exceptions.RequestException:
+        app.logger.exception('Problem indexing ESRI server %s', server_id)
+    except ValueError:
+        app.logger.exception('Problem indexing ESRI server %s', server_id)
+
+    server.status = resulting_status
+    server.job_id = None
+    db.session.add(server)
+    db.session.commit()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -30,29 +84,21 @@ def index():
         else:
             server = EsriServer(url=url)
             db.session.add(server)
-            db.session.commit()
+            try:
+                db.session.commit()
 
-            services = get_services(url)
-            for service in services:
-                service_details = get_service_details(service.get('url'))
-
-                db_service = Service(
-                    server=server,
-                    name=service.get('name'),
-                    service_type=service.get('type'),
-                    service_data=service_details,
+                job = q.enqueue_call(
+                    func='app.index_esri_server',
+                    args=(server.id,),
+                    result_ttl=5000,
                 )
-                db.session.add(db_service)
 
-                layers = service_details.get('layers', [])
-                for layer in layers:
-                    db_layer = Layer(
-                        service=db_service,
-                        name=layer.get('name'),
-                        layer_data=layer,
-                    )
-                    db.session.add(db_layer)
-            db.session.commit()
+                server.status = 'queued'
+                server.job_id = job.get_id()
+                db.session.add(server)
+                db.session.commit()
+            except IntegrityError:
+                errors.append('That URL has already been added.')
 
     servers = EsriServer.query.paginate(page=int(request.args.get('page', 1)))
 

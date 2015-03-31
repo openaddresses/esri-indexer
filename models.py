@@ -9,7 +9,10 @@ class EsriServer(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime(), default=func.now())
-    url = db.Column(db.String())
+    updated_at = db.Column(db.DateTime(), onupdate=func.now())
+    job_id = db.Column(db.String(), nullable=True)
+
+    url = db.Column(db.String(), unique=True)
     status = db.Column(db.String(), default='added')
 
     def __repr__(self):
