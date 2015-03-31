@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESRI Indexer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <style>
+      .container {
+        max-width: 1000px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1><a href="{{ url_for('.index') }}">ESRI Indexer</a></h1>
+      <hr/>
+      <h4>Search Results</h4>
+      {% for layer in results.items %}
+        <h5><a href="{{ url_for('.show_server', server_id=layer.id) }}">{{ layer.name }}</a></h5>
+      {% else %}
+        <h5>None yet!</h5>
+      {% endfor %}
+    </div>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
