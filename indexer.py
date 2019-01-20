@@ -39,9 +39,9 @@ if __name__ == '__main__':
     services = indexer.get_services('http://www.geostor.arkansas.gov/arcgis/rest/services')
 
     for service in services:
-        print service
+        print(service)
         details = indexer.get_service_details(service.get('url'))
-        print "{} Name: {}".format(service.get('type'), service.get('name'))
+        print("{} Name: {}".format(service.get('type'), service.get('name')))
 
         for layer in details.get('layers', []):
-            print "    Layer {}: {}".format(layer.get('id'), layer.get('name'))
+            print("    Layer {}: {}".format(layer.get('id'), layer.get('name')))
