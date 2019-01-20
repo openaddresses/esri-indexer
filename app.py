@@ -1,6 +1,7 @@
 import os
 from sqlalchemy.exc import IntegrityError
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask import Flask, render_template, request
 
 import redis
@@ -16,6 +17,7 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 redis_conn = redis.from_url(app.config['REDIS_URL'])
 q = Queue(connection=redis_conn)
 
