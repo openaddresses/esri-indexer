@@ -13,7 +13,7 @@ from indexer import Indexer
 
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 db = SQLAlchemy(app)
