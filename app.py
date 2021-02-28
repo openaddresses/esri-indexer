@@ -1,6 +1,7 @@
 import datetime
 import os
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -69,7 +70,7 @@ def index_esri_server(server_id):
 
     server.status = resulting_status
     server.job_id = None
-    server.last_crawled = datetime.datetime.utcnow
+    server.last_crawled = func.now()
     db.session.add(server)
     db.session.commit()
 
