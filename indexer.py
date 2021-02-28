@@ -45,7 +45,7 @@ class Indexer(object):
 
         err = data.get('error')
         if err:
-            raise ValueError("Server gave error response: %s", err)
+            raise ValueError("Server gave error response", err)
 
         return data
 

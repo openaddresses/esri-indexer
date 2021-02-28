@@ -44,7 +44,12 @@ def index_esri_server(server_id):
         indexer = Indexer(app.logger)
         services = indexer.spider_services(server.url)
         for service in services:
-            service_details = indexer.get_service_details(service.get('url'))
+            service_url = service.get('url')
+            try:
+                service_details = indexer.get_service_details(service_url)
+            except ValueError:
+                app.logger.exception('Error getting details for service %s', service_url)
+                continue
 
             db_service = Service(
                 server=server,
