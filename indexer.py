@@ -1,6 +1,7 @@
 import requests
 import posixpath
 
+
 class Indexer(object):
     def __init__(self, logger=None):
         self.logger = logger
@@ -38,6 +39,7 @@ class Indexer(object):
         self.logger.debug('HTTP %s %s: %s', response.request.method, response.url, response.status_code)
         response.raise_for_status()
         return response.json()
+
 
 if __name__ == '__main__':
     import argparse

@@ -70,6 +70,7 @@ def index_esri_server(server_id):
     db.session.add(server)
     db.session.commit()
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     errors = []
@@ -106,11 +107,13 @@ def index():
 
     return render_template('index.html', servers=servers, errors=errors, errored_url=errored_url)
 
+
 @app.route('/servers/<int:server_id>', methods=['GET'])
 def show_server(server_id):
     server = EsriServer.query.get_or_404(server_id)
 
     return render_template('show_server.html', server=server)
+
 
 @app.route('/servers/<int:server_id>/services/<int:service_id>', methods=['GET'])
 def show_service(server_id, service_id):
@@ -118,6 +121,7 @@ def show_service(server_id, service_id):
     service = Service.query.get_or_404(service_id)
 
     return render_template('show_service.html', server=server, service=service)
+
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -135,6 +139,7 @@ def search():
     results = results.paginate(page=page)
 
     return render_template('show_search.html', results=results)
+
 
 if __name__ == '__main__':
     app.run()
