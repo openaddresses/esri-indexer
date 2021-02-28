@@ -1,14 +1,15 @@
+import datetime
 import os
 from sqlalchemy.exc import IntegrityError
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask import Flask, render_template, request
+from flask import Flask, flash, redirect, render_template, request, url_for
 
 import redis
 from rq import Queue
 import requests
 
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 from indexer import Indexer
 
 
@@ -16,12 +17,13 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'aohi49fjnorj')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 redis_conn = redis.from_url(app.config['REDIS_URL'])
 q = Queue(connection=redis_conn)
 
-from models import *
+from models import EsriServer, Service, Layer
 
 
 def index_esri_server(server_id):
@@ -39,7 +41,7 @@ def index_esri_server(server_id):
     resulting_status = 'errored'
     try:
         indexer = Indexer(app.logger)
-        services = indexer.get_services(server.url)
+        services = indexer.spider_services(server.url)
         for service in services:
             service_details = indexer.get_service_details(service.get('url'))
 
@@ -67,6 +69,7 @@ def index_esri_server(server_id):
 
     server.status = resulting_status
     server.job_id = None
+    server.last_crawled = datetime.datetime.utcnow
     db.session.add(server)
     db.session.commit()
 
@@ -75,37 +78,40 @@ def index_esri_server(server_id):
 def index():
     errors = []
 
-    errored_url = None
     if request.method == 'POST':
         url = request.form['url']
 
         url_parts = urlparse(url)
 
         if url_parts.scheme not in ('http', 'https'):
-            errors.append('That URL is not valid.')
-            errored_url = url
-        else:
-            server = EsriServer(url=url)
-            db.session.add(server)
-            try:
-                db.session.commit()
+            flash("That doesn't seem to be a valid URL", category="error")
+            return redirect(url_for('index'))
 
-                job = q.enqueue_call(
-                    func='app.index_esri_server',
-                    args=(server.id,),
-                    result_ttl=5000,
-                )
+        server = EsriServer(url=urlunparse(url_parts))
+        db.session.add(server)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            flash("That URL has already been added", category="error")
+            return redirect(url_for('index'))
 
-                server.status = 'queued'
-                server.job_id = job.get_id()
-                db.session.add(server)
-                db.session.commit()
-            except IntegrityError:
-                errors.append('That URL has already been added.')
+        job = q.enqueue_call(
+            func='app.index_esri_server',
+            args=(server.id,),
+            result_ttl=5000,
+        )
+
+        server.status = 'queued'
+        server.job_id = job.get_id()
+        db.session.add(server)
+        db.session.commit()
+
+        flash("Queued the URL for crawling.", category="success")
+        return redirect(url_for('index'))
 
     servers = EsriServer.query.paginate(page=int(request.args.get('page', 1)))
 
-    return render_template('index.html', servers=servers, errors=errors, errored_url=errored_url)
+    return render_template('index.html', servers=servers)
 
 
 @app.route('/servers/<int:server_id>', methods=['GET'])
