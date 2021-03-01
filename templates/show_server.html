@@ -15,7 +15,17 @@
       <h1><a href="{{ url_for('.index') }}">ESRI Indexer</a></h1>
       <hr/>
       <h3>{{ server.url }}</h3>
-      <h4>Services</h4>
+      <p>
+        {% if server.last_crawled %}
+        Last indexed <strong>{{ server.last_crawled }}</strong>.
+        {% else %}
+        Never successfully indexed.
+        {% endif %}
+        <form method="post">
+          <input class="btn btn-primary" type="submit" name="action" value="Spider Again">
+        </form>
+      </p>
+      <h4>{{ server.services.count() }} Services</h4>
       <ul>
       {% for service in server.services %}
         <li><a href="{{ url_for('.show_service', server_id=server.id, service_id=service.id) }}">{{ service.name }}</a> ({{ service.service_type }})</li>

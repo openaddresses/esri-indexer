@@ -51,21 +51,36 @@ def index_esri_server(server_id):
                 app.logger.exception('Error getting details for service %s', service_url)
                 continue
 
-            db_service = Service(
+            db_service = Service.query.filter_by(
                 server=server,
                 name=service.get('name'),
                 service_type=service.get('type'),
-                service_data=service_details,
-            )
+            ).first()
+
+            if not db_service:
+                db_service = Service(
+                    server=server,
+                    name=service.get('name'),
+                    service_type=service.get('type'),
+                )
+
+            db_service.service_data = service_details
             db.session.add(db_service)
 
             layers = service_details.get('layers', [])
             for layer in layers:
-                db_layer = Layer(
+                db_layer = Layer.query.filter_by(
                     service=db_service,
                     name=layer.get('name'),
-                    layer_data=layer,
-                )
+                ).first()
+
+                if not db_layer:
+                    db_layer = Layer(
+                        service=db_service,
+                        name=layer.get('name'),
+                    )
+
+                db_layer.layer_data = layer
                 db.session.add(db_layer)
         resulting_status = 'imported'
     except requests.exceptions.RequestException:
@@ -82,8 +97,6 @@ def index_esri_server(server_id):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    errors = []
-
     if request.method == 'POST':
         url = request.form['url']
 
@@ -112,7 +125,7 @@ def index():
         db.session.add(server)
         db.session.commit()
 
-        flash("Queued the URL for crawling.", category="success")
+        flash("Queued the server for crawling.", category="success")
         return redirect(url_for('index'))
 
     servers = EsriServer.query.paginate(page=int(request.args.get('page', 1)))
@@ -120,9 +133,29 @@ def index():
     return render_template('index.html', servers=servers)
 
 
-@app.route('/servers/<int:server_id>', methods=['GET'])
+@app.route('/servers/<int:server_id>', methods=['GET', 'POST'])
 def show_server(server_id):
     server = EsriServer.query.get_or_404(server_id)
+
+    if request.method == 'POST':
+        if request.form.get('action') == 'Spider Again':
+            if server.status not in ('errored', 'imported'):
+                flash("Can't re-crawl a server with state %s" % server.status)
+                return redirect(url_for('index'))
+
+            job = q.enqueue_call(
+                func='app.index_esri_server',
+                args=(server.id,),
+                result_ttl=5000,
+            )
+
+            server.status = 'queued'
+            server.job_id = job.get_id()
+            db.session.add(server)
+            db.session.commit()
+
+            flash("Queued the server for crawling.", category="success")
+            return redirect(url_for('index'))
 
     return render_template('show_server.html', server=server)
 
