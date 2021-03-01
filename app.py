@@ -177,6 +177,10 @@ def search():
     if which_server and which_server.isdigit():
         results = results.join(Service).filter(Service.server_id == int(which_server))
 
+    service_type = request.args.get('service_type')
+    if service_type:
+        results = results.join(Service).filter(Service.service_type == service_type)
+
     page = request.args.get('page', 1)
     if not isinstance(page, int) and not page.isdigit():
         page = 1
