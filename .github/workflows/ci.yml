@@ -54,8 +54,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv add --dev pytest pytest-cov
-          uv run pytest --cov=. --cov-report=xml
+          uv run pytest
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
