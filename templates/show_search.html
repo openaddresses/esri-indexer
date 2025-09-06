@@ -3,7 +3,7 @@
   <head>
     <title>ESRI Indexer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
     <style>
       .container {
         max-width: 1000px;
@@ -16,12 +16,12 @@
       <hr/>
       <h4>Search Results</h4>
       {% for layer in results.items %}
-        <h5><a href="{{ url_for('.show_server', server_id=layer.id) }}">{{ layer.name }}</a></h5><p>Part of {{ layer.service.name }} on {{ layer.service.server.url }}.</p>
+      <h5><a href="{{ layer.service.server.url }}/{{ layer.service.name }}/{{ layer.service.service_type }}/{{ layer.layer_data.get('id') }}">{{ layer.name }}</a></h5><p>Part of <a href="{{ layer.service.server.url }}/{{ layer.service.name }}/{{ layer.service.service_type }}">{{ layer.service.name }}</a> on {{ layer.service.server.url }}.</p>
       {% else %}
         <h5>None yet!</h5>
       {% endfor %}
     </div>
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
   </body>
 </html>

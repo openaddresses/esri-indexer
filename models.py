@@ -14,6 +14,7 @@ class EsriServer(db.Model):
 
     url = db.Column(db.String(), unique=True)
     status = db.Column(db.String(), default='added')
+    last_crawled = db.Column(db.DateTime(), nullable=True)
 
     def __repr__(self):
         return '<EsriServer {}: {}>'.format(self.id, self.url)
