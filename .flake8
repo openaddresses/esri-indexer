@@ -3,3 +3,5 @@
     max-line-length = 120
     max-complexity = 18
     select = B,C,E,F,W,T4,B9,T20,N801,N802,N803,N806,N816
+    per-file-ignores =
+        migrations/*: E402
