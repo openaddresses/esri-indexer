@@ -1,10 +1,11 @@
-from rq import Worker, Queue, Connection
-from app import redis_conn, app
+from rq import Connection, Queue, Worker
 
-listen = ['default']
+from app import app, redis_conn
+
+listen = ["default"]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with app.app_context():
         with Connection(redis_conn):
             worker = Worker(list(map(Queue, listen)))

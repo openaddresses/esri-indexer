@@ -1,11 +1,11 @@
-from app import db
-
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import JSON
 
+from app import db
+
 
 class EsriServer(db.Model):
-    __tablename__ = 'servers'
+    __tablename__ = "servers"
 
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime(), default=func.now())
@@ -13,19 +13,19 @@ class EsriServer(db.Model):
     job_id = db.Column(db.String(), nullable=True)
 
     url = db.Column(db.String(), unique=True)
-    status = db.Column(db.String(), default='added')
+    status = db.Column(db.String(), default="added")
     last_crawled = db.Column(db.DateTime(), nullable=True)
 
     def __repr__(self):
-        return '<EsriServer {}: {}>'.format(self.id, self.url)
+        return "<EsriServer {}: {}>".format(self.id, self.url)
 
 
 class Service(db.Model):
-    __tablename__ = 'services'
+    __tablename__ = "services"
 
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime(), default=func.now())
-    server_id = db.Column(db.Integer, db.ForeignKey('servers.id'))
+    server_id = db.Column(db.Integer, db.ForeignKey("servers.id"))
 
     service_data = db.Column(JSON())
     name = db.Column(db.String())
@@ -34,19 +34,19 @@ class Service(db.Model):
     server = db.relationship(
         EsriServer,
         backref=db.backref(
-            'services',
-            lazy='dynamic',
-            cascade='delete,all',
-        )
+            "services",
+            lazy="dynamic",
+            cascade="delete,all",
+        ),
     )
 
 
 class Layer(db.Model):
-    __tablename__ = 'layers'
+    __tablename__ = "layers"
 
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime(), default=func.now())
-    service_id = db.Column(db.Integer, db.ForeignKey('services.id'))
+    service_id = db.Column(db.Integer, db.ForeignKey("services.id"))
 
     layer_data = db.Column(JSON())
     name = db.Column(db.String())
@@ -54,8 +54,8 @@ class Layer(db.Model):
     service = db.relationship(
         Service,
         backref=db.backref(
-            'layers',
-            lazy='dynamic',
-            cascade='delete,all',
-        )
+            "layers",
+            lazy="dynamic",
+            cascade="delete,all",
+        ),
     )
