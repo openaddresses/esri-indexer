@@ -25,15 +25,6 @@ dev = [
     "flake8",
 ]
 
-[tool.uv]
-dev-dependencies = [
-    "pylint",
-    "pre-commit",
-    "black",
-    "isort",
-    "flake8",
-]
-
 [tool.black]
 line-length = 88
 target-version = ['py38']
