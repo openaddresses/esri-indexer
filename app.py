@@ -12,6 +12,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from indexer import Indexer
+from models import EsriServer, Layer, Service
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -22,8 +23,6 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 redis_conn = redis.from_url(app.config["REDIS_URL"])
 q = Queue(connection=redis_conn)
-
-from models import EsriServer, Layer, Service
 
 
 def index_esri_server(server_id):
