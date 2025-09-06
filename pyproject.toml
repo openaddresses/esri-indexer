@@ -18,11 +18,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pylint",
-    "pre-commit",
     "black",
-    "isort",
     "flake8",
+    "isort",
+    "pre-commit",
+    "pylint",
+    "pytest",
 ]
 
 [tool.black]
