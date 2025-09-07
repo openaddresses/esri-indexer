@@ -46,6 +46,18 @@ def index_esri_server(server_id):
     resulting_status = "errored"
     try:
         indexer = Indexer(app.logger)
+
+        # Fetch server info including version if not already set
+        if not server.version:
+            try:
+                server_info = indexer.get_server_info(server.url)
+                server.version = server_info.get("currentVersion")
+                db.session.add(server)
+                db.session.commit()
+                app.logger.info("Stored server version: %s", server.version)
+            except Exception:
+                app.logger.exception("Could not fetch server version for %s", server.url)
+
         services = indexer.spider_services(server.url)
         for service in services:
             service_url = service.get("url")

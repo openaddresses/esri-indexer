@@ -7,6 +7,51 @@ class Indexer(object):
     def __init__(self, logger=None):
         self.logger = logger
 
+    def get_server_info(self, url):
+        """Fetch server metadata including version information."""
+        # Ensure we're hitting the services endpoint
+        if not url.endswith('/services'):
+            if url.endswith('/'):
+                url = url + 'services'
+            else:
+                url = url + '/services'
+
+        try:
+            response = requests.get(url, params=dict(f="json"), timeout=30)
+            self.logger.debug(
+                "HTTP %s %s: %s",
+                response.request.method,
+                response.url,
+                response.status_code,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            err = data.get("error")
+            if err:
+                raise ValueError("Server gave error response: %s" % err)
+
+            # Log some useful server info
+            version = data.get("currentVersion")
+            service_count = len(data.get("services", []))
+            folder_count = len(data.get("folders", []))
+
+            self.logger.info(
+                "Server info - Version: %s, Services: %d, Folders: %d",
+                version or "Unknown",
+                service_count,
+                folder_count
+            )
+
+            return data
+
+        except requests.exceptions.RequestException as e:
+            self.logger.error("Failed to fetch server info from %s: %s", url, e)
+            raise
+        except ValueError as e:
+            self.logger.error("Invalid response from server %s: %s", url, e)
+            raise
+
     def spider_services(self, url, root_url=None):
         root_url = root_url or url
 

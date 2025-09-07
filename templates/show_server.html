@@ -23,6 +23,9 @@
             {% endfor %}
             <h3>{{ server.url }}</h3>
             <p>
+                {% if server.version %}
+                <strong>Version:</strong> {{ server.version }}<br>
+                {% endif %}
                 {% if server.last_crawled %} Last indexed
                 <strong>{{ server.last_crawled }}</strong>. {% else %} Never
                 successfully indexed. {% endif %}
