@@ -28,7 +28,7 @@ q = Queue(connection=redis_conn)
 
 
 # Import models after db is defined to avoid circular imports
-from models import EsriServer, Layer, Service
+from models import EsriServer, Layer, Service  # noqa: E402
 
 
 def index_esri_server(server_id):
