@@ -56,7 +56,8 @@
                 <li>
                     <a href="{{ url_for('.show_server', server_id=server.id) }}"
                         >{{ server.url }}</a
-                    >&nbsp;&mdash;&nbsp;{{ server.status }}
+                    >&nbsp;&mdash;&nbsp;{{ server.status }} {% if server.version
+                    %}&nbsp;(v{{ server.version }}){% endif %}
                 </li>
                 {% else %}
                 <li>None yet!</li>
