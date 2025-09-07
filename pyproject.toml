@@ -9,6 +9,7 @@ dependencies = [
     "flask",
     "flask-migrate",
     "flask-sqlalchemy",
+    "flask-wtf",
     "gunicorn",
     "psycopg2-binary",
     "redis",

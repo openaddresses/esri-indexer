@@ -1,54 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <head>
-    <title>ESRI Indexer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <style>
-      .container {
-        max-width: 1000px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>ESRI Indexer</h1>
-      <hr/>
-      {% for message in get_flashed_messages() %}
-      <p>{{ message }}</p>
-      {% endfor %}
-      <h2>Index New Server</h2>
-      <form role="form" method='POST'>
-        <div class="form-group">
-          {% if existing_url %}
-          <input type="text" name="url" class="form-control" id="url-box" value="{{ existing_url }}" placeholder="Enter URL..." style="max-width: 500px;">
-          {% else %}
-          <input type="text" name="url" class="form-control" id="url-box" placeholder="Enter URL..." style="max-width: 500px;">
-          {% endif %}
+    <head>
+        <title>ESRI Indexer</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+            rel="stylesheet"
+            media="screen"
+        />
+        <style>
+            .container {
+                max-width: 1000px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>ESRI Indexer</h1>
+            <hr />
+            {% for message in get_flashed_messages() %}
+            <p>{{ message }}</p>
+            {% endfor %}
+            <h2>Index New Server</h2>
+            <form role="form" method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.url.label(class="sr-only") }} {{ form.url() }} {%
+                    for error in form.url.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {{ form.submit() }}
+            </form>
+            <br />
+            <h2>Search Existing Layers</h2>
+            <form role="form" method="GET" action="search">
+                <div class="form-group">
+                    {{ search_form.q.label(class="sr-only") }} {{
+                    search_form.q() }}
+                </div>
+                <div class="form-group">
+                    {{ search_form.server_id.label(class="sr-only") }} {{
+                    search_form.server_id() }}
+                </div>
+                <div class="form-group">
+                    {{ search_form.service_type.label(class="sr-only") }} {{
+                    search_form.service_type() }}
+                </div>
+                {{ search_form.submit() }}
+            </form>
+            <br />
+            <h2>Existing Servers</h2>
+            <ul>
+                {% for server in servers.items %}
+                <li>
+                    <a href="{{ url_for('.show_server', server_id=server.id) }}"
+                        >{{ server.url }}</a
+                    >&nbsp;&mdash;&nbsp;{{ server.status }}
+                </li>
+                {% else %}
+                <li>None yet!</li>
+                {% endfor %}
+            </ul>
+            {% if servers.has_prev %}<a
+                href="{{ url_for('.index', page=servers.prev_num) }}"
+                >&lt; Back</a
+            >{% else %}&lt; Back{% endif %} | {% if servers.has_next %}<a
+                href="{{ url_for('.index', page=servers.next_num) }}"
+                >Next &gt;</a
+            >{% else %}Next &gt;{% endif %}
         </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-      </form>
-      <br>
-      <h2>Search Existing Layers</h2>
-      <form role="form" method='GET' action='search'>
-        <div class="form-group">
-          <input type="text" name="q" class="form-control" id="q-box" placeholder="Enter Search..." style="max-width: 500px;">
-        </div>
-        <button type="submit" class="btn btn-default">Search</button>
-      </form>
-      <br/>
-      <h2>Existing Servers</h2>
-      <ul>
-      {% for server in servers.items %}
-        <li><a href="{{ url_for('.show_server', server_id=server.id) }}">{{ server.url }}</a>&nbsp;&mdash;&nbsp;{{ server.status }}</li>
-      {% else %}
-        <li>None yet!</li>
-      {% endfor %}
-      </ul>
-      {% if servers.has_prev %}<a href="{{ url_for('.index', page=servers.prev_num) }}">&lt; Back</a>{% else %}&lt; Back{% endif %} |
-      {% if servers.has_next %}<a href="{{ url_for('.index', page=servers.next_num) }}">Next &gt;</a>{% else %}Next &gt;{% endif %}
-    </div>
-    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-  </body>
+        <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    </body>
 </html>
