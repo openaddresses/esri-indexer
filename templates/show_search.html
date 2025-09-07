@@ -1,27 +1,128 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <head>
-    <title>ESRI Indexer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <style>
-      .container {
-        max-width: 1000px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1><a href="{{ url_for('.index') }}">ESRI Indexer</a></h1>
-      <hr/>
-      <h4>Search Results</h4>
-      {% for layer in results.items %}
-      <h5><a href="{{ layer.service.server.url }}/{{ layer.service.name }}/{{ layer.service.service_type }}/{{ layer.layer_data.get('id') }}">{{ layer.name }}</a></h5><p>Part of <a href="{{ layer.service.server.url }}/{{ layer.service.name }}/{{ layer.service.service_type }}">{{ layer.service.name }}</a> on {{ layer.service.server.url }}.</p>
-      {% else %}
-        <h5>None yet!</h5>
-      {% endfor %}
-    </div>
-    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-  </body>
+    <head>
+        <title>ESRI Indexer</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+            rel="stylesheet"
+            media="screen"
+        />
+        <style>
+            .container {
+                max-width: 1000px;
+            }
+            .search-form {
+                background-color: #f5f5f5;
+                padding: 15px;
+                margin-bottom: 20px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1><a href="{{ url_for('.index') }}">ESRI Indexer</a></h1>
+            <hr />
+
+            <div class="search-form">
+                <h4>Search Layers</h4>
+                <form role="form" method="GET" action="{{ url_for('search') }}">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.q.label(class="control-label") }} {{
+                                form.q() }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                {{ form.server_id.label(class="control-label")
+                                }} {{ form.server_id() }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                {{
+                                form.service_type.label(class="control-label")
+                                }} {{ form.service_type() }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="control-label">&nbsp;</label>
+                                <div>{{ form.submit() }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <h4>Search Results</h4>
+            {% for layer in results.items %}
+            <h5>
+                <a
+                    href="{{ layer.service.server.url }}/{{ layer.service.name }}/{{ layer.service.service_type }}/{{ layer.layer_data.get('id') }}"
+                >
+                    {{ layer.name }}
+                </a>
+            </h5>
+            <p>
+                Part of
+                <a
+                    href="{{ layer.service.server.url }}/{{ layer.service.name }}/{{ layer.service.service_type }}"
+                >
+                    {{ layer.service.name }}
+                </a>
+                on {{ layer.service.server.url }}.
+            </p>
+            {% else %}
+            <h5>No results found!</h5>
+            {% endfor %} {% if results.pages > 1 %}
+            <nav aria-label="Search results pagination">
+                <ul class="pagination">
+                    {% if results.has_prev %}
+                    <li>
+                        <a
+                            href="{{ url_for('search', q=request.args.get('q'), server_id=request.args.get('server_id'), service_type=request.args.get('service_type'), page=results.prev_num) }}"
+                            aria-label="Previous"
+                        >
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %} {% for page_num in results.iter_pages() %} {% if
+                    page_num %} {% if page_num != results.page %}
+                    <li>
+                        <a
+                            href="{{ url_for('search', q=request.args.get('q'), server_id=request.args.get('server_id'), service_type=request.args.get('service_type'), page=page_num) }}"
+                        >
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="active">
+                        <span
+                            >{{ page_num }}
+                            <span class="sr-only">(current)</span></span
+                        >
+                    </li>
+                    {% endif %} {% else %}
+                    <li class="disabled"><span>…</span></li>
+                    {% endif %} {% endfor %} {% if results.has_next %}
+                    <li>
+                        <a
+                            href="{{ url_for('search', q=request.args.get('q'), server_id=request.args.get('server_id'), service_type=request.args.get('service_type'), page=results.next_num) }}"
+                            aria-label="Next"
+                        >
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+        <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    </body>
 </html>
