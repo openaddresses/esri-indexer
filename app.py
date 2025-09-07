@@ -8,11 +8,11 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from forms import AddServerForm, SearchForm, ServerActionForm
 from rq import Queue
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
+from forms import AddServerForm, SearchForm, ServerActionForm
 from indexer import Indexer
 
 app = Flask(__name__)
