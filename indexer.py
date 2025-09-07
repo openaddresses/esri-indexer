@@ -10,11 +10,11 @@ class Indexer(object):
     def get_server_info(self, url):
         """Fetch server metadata including version information."""
         # Ensure we're hitting the services endpoint
-        if not url.endswith('/services'):
-            if url.endswith('/'):
-                url = url + 'services'
+        if not url.endswith("/services"):
+            if url.endswith("/"):
+                url = url + "services"
             else:
-                url = url + '/services'
+                url = url + "/services"
 
         try:
             response = requests.get(url, params=dict(f="json"), timeout=30)
@@ -40,7 +40,7 @@ class Indexer(object):
                 "Server info - Version: %s, Services: %d, Folders: %d",
                 version or "Unknown",
                 service_count,
-                folder_count
+                folder_count,
             )
 
             return data
