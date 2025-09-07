@@ -5,15 +5,15 @@ from urllib.parse import urlparse, urlunparse
 import redis
 import requests
 from flask import Flask, flash, redirect, render_template, request, url_for
-from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
+from forms import AddServerForm, SearchForm, ServerActionForm
 from rq import Queue
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from indexer import Indexer
-from forms import AddServerForm, SearchForm, ServerActionForm
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -135,7 +135,9 @@ def index():
 
     servers = EsriServer.query.paginate(page=int(request.args.get("page", 1)))
 
-    return render_template("index.html", servers=servers, form=form, search_form=search_form)
+    return render_template(
+        "index.html", servers=servers, form=form, search_form=search_form
+    )
 
 
 @app.route("/servers/<int:server_id>", methods=["GET", "POST"])
@@ -179,7 +181,9 @@ def search():
 
     # Populate server choices for the select field
     servers = EsriServer.query.all()
-    form.server_id.choices = [('', 'All Servers')] + [(str(s.id), s.url) for s in servers]
+    form.server_id.choices = [("", "All Servers")] + [
+        (str(s.id), s.url) for s in servers
+    ]
 
     query = request.args.get("q", "")
     results = Layer.query.filter(Layer.name.ilike("%{}%".format(query)))
